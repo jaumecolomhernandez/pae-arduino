@@ -6,6 +6,8 @@
 // TODO: Implement using real UARTS
 // TODO: Think
 
+bool debug = false;
+
 void setup() {
   Serial.begin(115200); // Serial setup
   Serial2.begin(115200); // Software serial
@@ -22,7 +24,8 @@ String read_line() {
   String data = "";
   int tries = 0;
   while (Serial2.available() == 0) {
-    Serial.println("[read_line] The chosen UART Serial bus is not available"); // Not sure if needed
+    if(debug)
+      Serial.println("[read_line] The chosen UART Serial bus is not available"); // Not sure if needed
     tries++;
     if (tries == 3) {
       break;
@@ -50,7 +53,7 @@ void print_hex(String string) {
     character = printf("%x", string[i] );
     hex.concat(character);
   }
-  Serial.println(hex);
+  Serial.println(hex);   
   Serial.println("");
 
 }
@@ -70,7 +73,8 @@ void read_ans() {
   bool wait = true;
 
   while (Serial2.available() == 0) {
-    Serial.println("[read_ans] The chosen UART Serial bus is not available"); // Not sure if needed
+    if(debug)
+      Serial.println("[read_ans] The chosen UART Serial bus is not available"); // Not sure if needed
     //tries++;
     /*
       if (tries == 3) {
@@ -81,15 +85,17 @@ void read_ans() {
 
   while (wait) {
     String recv_line = read_line();
-
-    Serial.print("Received: ");
-    Serial.print(recv_line);
-
-    // print_hex(recv_line);
+    if (recv_line.length() != 0){
+      Serial.print("Received: ");
+      Serial.print(recv_line);
+    }
+    //if(debug)
+      //print_hex(recv_line);
 
     if (recv_line == "> " || recv_line == "> \n" || recv_line == ">" || recv_line == "Ú") {
       wait = false;
-      Serial.println("Now wait false");
+      if(debug)
+        Serial.println("Now wait false");
     }
   }
 }
