@@ -66,6 +66,9 @@ void read_ans() {
      one of the defined endings.
   */
 
+  int timeout_millis = 1000;
+  int current_time = millis();
+
   // TODO: Parse output
   // TODO: Add timeout
   // TODO: Add custom endings
@@ -73,14 +76,7 @@ void read_ans() {
   bool wait = true;
 
   while (Serial2.available() == 0) {
-    if(debug)
-      Serial.println("[read_ans] The chosen UART Serial bus is not available"); // Not sure if needed
-    //tries++;
-    /*
-      if (tries == 3) {
-      break;
-      }
-    */
+    if(debug) Serial.println("[read_ans] The chosen UART Serial bus is not available"); // Not sure if needed
   }
 
   while (wait) {
@@ -89,32 +85,34 @@ void read_ans() {
       Serial.print("Received: ");
       Serial.print(recv_line);
     }
-    //if(debug)
-      //print_hex(recv_line);
+    
+    // if(debug) print_hex(recv_line);
 
     if (recv_line == "> " || recv_line == "> \n" || recv_line == ">" || recv_line == "Ú") {
       wait = false;
-      if(debug)
-        Serial.println("Now wait false");
+      if(debug) Serial.println("Now wait false");
     }
+
+    if (millis() > (current_time + 1000)) wait = false;
+    
   }
 }
 
 void send_command(String command) {
-  Serial.println("Sending: " + command);
+  Serial.println("\nSending: " + command);
   Serial2.println(command);
   read_ans();
 }
 
 void loop() {
   // TODO: Implement read–eval–print loop (REPL)
+  send_command("help");
+  delay(100);
+}
 
-  
-    send_command("help");
-    delay(100);
-  
 
-  /*
+/* void loop() {
+   
   String userCommand = "";
   if (Serial.available()) {
     userCommand = Serial.readStringUntil('\n');
@@ -122,5 +120,5 @@ void loop() {
     send_command(userCommand);
   }
   delay(1000);
-  */
-}
+  
+}*/
