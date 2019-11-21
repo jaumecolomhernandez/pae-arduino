@@ -7,7 +7,7 @@
 // TODO: Think
 
 bool debug = false;
-
+//.
 void setup() {
   Serial.begin(115200); // Serial setup
   Serial2.begin(115200); // Software serial
