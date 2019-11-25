@@ -5,6 +5,7 @@ boolean isEnding(String string) {
   for (int i = 0; i < sizeof(endings); i++) {
     if (string.equals(endings[i])) {
       return true;
+    }
     return false;
   }
 }
@@ -105,13 +106,10 @@ int read_ans(String answer[]) {
   }
   return lines;
 }
-
-
 int send_command(String command, String answer[]) {
   Serial.println("\nSending: " + command);
   Serial2.println(command);
-  int lines = read_ans(answer);
-  return lines;
+  return lines = read_ans(answer);
 }
 
 
