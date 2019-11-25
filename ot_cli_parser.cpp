@@ -1,36 +1,6 @@
-/*
-   IMPLEMENTATION OF SERIAL INTERACTION WITH OPENTHREAD CLI
-   Ported code from: https://github.com/jaumecolomhernandez/autoconfig-openthread/blob/88c51c36a23c969f9de7fb898e71ded06d2342cc/device_classes.py#L37
-*/
+#include <Arduino.h>
+#include "ot_cli_parser.h"
 
-const int MAX_NEIGHBORS = 15;
-const int MAX_LENGTH_ANSWER = 25;
-
-typedef struct{
-  char role;
-  String rloc;
-  String mac;
-}neighbor;
-
-String answer[MAX_LENGTH_ANSWER] = {};
-int read_ans(String answer[] = answer);
-
-bool commissioner;
-bool debug = false;
-String endings[] = {"> ",
-                    "> \n",
-                    ">",
-                    "Ú",
-                   };
-
-void setup() {
-  //String answer[50];
-  Serial.begin(115200); // Serial setup
-  Serial2.begin(115200); // Software serial
-  Serial2.setRxBufferSize(2048);
-  Serial2.println(".");  // This is needed to clean weird input symbols
-  //read_ans(answer);
-}
 boolean isEnding(String string) {
   for (int i = 0; i < sizeof(endings); i++) {
     if (string.equals(endings[i])) {
@@ -73,6 +43,8 @@ void print_hex(String string) {
   Serial.println(hex);
   Serial.println("");
 }
+
+
 int read_ans(String answer[]) {
   /*
      Reads full answer
@@ -139,48 +111,21 @@ int send_command(String command, String answer[]) {
   Serial2.println(command);
   return lines = read_ans(answer);
 }
-void parse_neighbor_table(String answer[], int size, neighbor neighbors[]){
-  int count = 0;
-  for(int i = 3; i < size-2; i++){
-    neighbor n;
-    Serial.println(answer[i].charAt(4));
-    n.role = answer[i].charAt(4);
-    n.rloc = answer[i].substring(9,15);
-    n.mac = answer[i].substring(55, 71);
-    neighbors[count] = n;
-    count++;
-  }
-   
-}
+
 
 void start_commissioner() {
-  send_command("dataset init new");
-  delay(1000);
-  send_command("dataset meshlocalprefix dead:dead:cafe:cafe:dead:dead:cafe::");
-  delay(1000);
-  send_command("dataset");
-  delay(1000);
-  send_command("dataset commit active");
-  delay(1000);
-  send_command("panid 0xdead");
-  delay(1000);
-  send_command("ifconfig up");
-  delay(1000);
-  send_command("thread start");
-  delay(1000);
-  send_command("ipaddr");
-  delay(5000);
-  send_command("commissioner start");
-  delay(10000);
-  send_command("commissioner joiner add * AAAA");
+  for(int i = 0; i < length_init_commissioner_commands; i++){
+  	send_command(init_commissioner_commands[i]);
+  	delay(10000);
+  }
   commissioner = true;
 }
 
+
 void start_joiner() {
-  send_command("ifconfig up");
-  send_command("panid 0xdead");
-  send_command("eui64");
-  send_command("joiner start AAAA");
+  for(int i = 0; i < length_init_joiner_commands; i++){
+  	send_command(init_joiner_commands[i]);
+  }
   bool join_answer = false;
   int length_answer = 0;
   answer = {};
@@ -202,51 +147,33 @@ void start_joiner() {
     commissioner = false;
 }
 
-void open_udp_communication()
 
-void loop() {
+void open_udp_communication(){
+	send_command("udp open");
+	send_command("udp bind :: 1212");
+}
 
-  /*
-    // *************************************************************
-    send_command("help");
-    delay(100);
-    // *************************************************************
-  */
-/*
-  // **************[REPL] READ - EVAL - PRINT - LOOP**************
-  String userCommand = "";
-  String answer[50];
-  if (Serial.available()) {
-    userCommand = Serial.readStringUntil('\n');
-    Serial.println(userCommand);
-    send_command(userCommand, answer);
+void udp_connect(String ip){
+	send_command("udp open");
+	send_command("udp connect %s 1212", ip);
+}
+
+
+void def_static_ip(int dev_id){
+	send_command("ipaddr add dead:dead:cafe:cafe:dead:dead:cafe:000%d", dev_id);
+}
+
+
+void parse_neighbor_table(String answer[], int size, neighbor neighbors[]){
+  int count = 0;
+  for(int i = 3; i < size-2; i++){
+    neighbor n;
+    Serial.println(answer[i].charAt(4));
+    n.role = answer[i].charAt(4);
+    n.rloc = answer[i].substring(9,15);
+    n.mac = answer[i].substring(55, 71);
+    neighbors[count] = n;
+    count++;
   }
-  delay(1000);
-  // *************************************************************
-*/
-  /*TEST
-  Serial.println("TESTING");
-  neighbor neighbors[3];
-  String ans[8] = {"neighbor table", "| Role | RLOC16 | Age | Avg RSSI | Last RSSI |R|S|D|N| Extended MAC     |",
-                      "+--------+-----+----------+-----------+-+-+-+-+------------------+", 
-                      "|   C  | 0xcc01 |  96 |      -46 |       -46 |1|1|1|1| 1eb9ba8a6522636b |",
-                      "|   R  | 0xc800 |   2 |      -29 |       -29 |1|0|1|1| 9a91556102c39ddb |",
-                      "|   R  | 0xf000 |   3 |      -28 |       -28 |1|0|1|1| 0ad7ed6beaa6016d |",
-                      "Done", "\n"};
-  Serial.println(ans[3].charAt(4));
-  
-  parse_neighbor_table(ans, 8, neighbors);
-  delay(1000);
-  for(int i = 0; i < 3; i++){
-    Serial.println("Neighbor");
-    Serial.println(neighbors[i].role);
-    Serial.println(neighbors[i].rloc);
-    Serial.println(neighbors[i].mac);
-  }
-  */
-  neighbor neigbhbors[MAX_NEIGHBORS];
-  String answer[MAX_LENGTH_ANSWER];
-  int length_answer;
-  int length_answer = send_command("neighbor table", answer);
-  parse_neighbor_table(answer, length_answer, neighbors);
+   
 }
