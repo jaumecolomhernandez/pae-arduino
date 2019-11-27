@@ -43,6 +43,8 @@ int parse_buffer(char *buffer, int nchars, struct message *msgs)
     int begin = 0;
     int end = 0;
 
+    s = none;
+
     for (int i = 0; i < nchars; i++)
     {
         if ((s == none) && (buffer[i] == '|'))
