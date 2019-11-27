@@ -825,6 +825,16 @@ void loop() {
       // Protocol is -> '||HEAD|CONTENT||'
       // TODO: Create functional script
       // DONE: Created testing script
+
+      for (int i=0; i<n_msgs; i++){
+        if msgs[i].payload == "HELLO"{
+          char res[] = "WORLD";
+          if (! fona.UDPsend(res, sizeof(res))) Serial.println(F("Failed to send!"));
+          Serial.print("Sent response");
+        } else {
+          Serial.print("Method not implemented");
+        }
+      }
       
       break;
     }
