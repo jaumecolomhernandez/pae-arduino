@@ -5,7 +5,7 @@
 
 /*************CONSTANTS DEFINITION*****************/
 const int MAX_NEIGHBORS = 15;
-const int MAX_LENGTH_ANSWER = 25;
+const int MAX_LENGTH_ANSWER = 100;
 const int length_init_commissioner_commands = 10;
 const int length_init_joiner_commands = 4;
 
