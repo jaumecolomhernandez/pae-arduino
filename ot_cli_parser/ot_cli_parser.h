@@ -3,8 +3,38 @@
 
 #include <Arduino.h>
 
+/*************CONSTANTS DEFINITION*****************/
 const int MAX_NEIGHBORS = 15;
 const int MAX_LENGTH_ANSWER = 25;
+const int length_init_commissioner_commands = 10;
+const int length_init_joiner_commands = 4;
+
+const String endings[] = {"> ",
+                    "> \n",
+                    ">",
+                    "Ú",
+                   };
+
+const String init_commissioner_commands[] = {"dataset init new",
+                     "dataset meshlocalprefix dead:dead:cafe:cafe:dead:dead:cafe::",
+                     "dataset",
+                     "dataset commit active",
+                     "panid 0xdead",
+                     "ifconfig up",
+                     "thread start",
+                     "ipaddr",
+                     "commissioner start",
+                     "commissioner joiner add * AAAA",
+                    };
+
+const String init_joiner_commands[] = {"ifconfig up",
+                 "panid 0xdead",
+                 "eui64",
+                 "joiner start AAAA",           
+                };
+
+
+/*************VARIABLES DECLARATION*****************/
 
 typedef struct{
   char role;
@@ -12,36 +42,17 @@ typedef struct{
   String mac;
 }neighbor;
 
-String answer[MAX_LENGTH_ANSWER] = {};
-int read_ans(String command, String answer[] = answer);
 
-String ip;
-bool commissioner;
-bool debug = false;
-String endings[] = {"> ",
-                    "> \n",
-                    ">",
-                    "Ú",
-                   };
-
-int length_init_commissioner_commands = 10;
-String init_commissioner_commands[] = {"dataset init new",
-									   "dataset meshlocalprefix dead:dead:cafe:cafe:dead:dead:cafe::",
-									   "dataset",
-									   "dataset commit active",
-									   "panid 0xdead",
-									   "ifconfig up",
-									   "thread start",
-									   "ipaddr",
-									   "commissioner start",
-									   "commissioner joiner add * AAAA",
-									  };
-
-int length_init_joiner_commands = 4;
-String init_joiner_commands[] = {"ifconfig up",
-								 "panid 0xdead",
-								 "eui64",
-								 "joiner start AAAA",						
-								};
-
+/**************FUNCTIONS DECLARATION***************/
+boolean isEnding(String string);
+int read_ans(String command, String answer[] = {});
+String read_line();
+void print_hex(String string);
+int send_command(String command, String answer[] = {});
+void start_commissioner();
+void start_joiner();
+void open_udp_communication();
+void udp_connect(String ip);
+void def_static_ip(int dev_id);
+void parse_neighbor_table(String answer[], int size, neighbor neighbors[]);
 #endif 

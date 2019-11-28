@@ -23,7 +23,7 @@ void loop() {
     delay(100);
     // *************************************************************
   */
-/*
+
   // **************[REPL] READ - EVAL - PRINT - LOOP**************
   String userCommand = "";
   String answer[50];
@@ -34,7 +34,7 @@ void loop() {
   }
   delay(1000);
   // *************************************************************
-*/
+
   /*TEST
   Serial.println("TESTING");
   neighbor neighbors[3];
@@ -55,9 +55,6 @@ void loop() {
     Serial.println(neighbors[i].mac);
   }
   */
-  neighbor neigbhbors[MAX_NEIGHBORS];
-  String answer[MAX_LENGTH_ANSWER];
-  int length_answer;
-  length_answer = send_command("neighbor table", answer);
-  parse_neighbor_table(answer, length_answer, neighbors);
+  
+
 }

@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include "ot_cli_parser.h"
 
+bool debug = false;
+bool commissioner;
+
 boolean isEnding(String string) {
   for (int i = 0; i < sizeof(endings); i++) {
     if (string.equals(endings[i])) {
@@ -106,10 +109,12 @@ int read_ans(String answer[]) {
   }
   return lines;
 }
+
 int send_command(String command, String answer[]) {
   Serial.println("\nSending: " + command);
   Serial2.println(command);
-  return lines = read_ans(answer);
+  int lines = read_ans(answer);
+  return lines;
 }
 
 
@@ -128,7 +133,7 @@ void start_joiner() {
   }
   bool join_answer = false;
   int length_answer = 0;
-  answer = {};
+  String answer[] = {};
   //Wait for an answer
     //Check if is a Join success answer
     length_answer = read_ans(answer);
@@ -155,12 +160,12 @@ void open_udp_communication(){
 
 void udp_connect(String ip){
 	send_command("udp open");
-	send_command("udp connect %s 1212", ip);
+	send_command("udp connect" + ip + "1212");
 }
 
 
 void def_static_ip(int dev_id){
-	send_command("ipaddr add dead:dead:cafe:cafe:dead:dead:cafe:000%d", dev_id);
+	send_command("ipaddr add dead:dead:cafe:cafe:dead:dead:cafe:000"+dev_id);
 }
 
 
