@@ -819,7 +819,12 @@ void loop() {
 
       struct message msgs[10];
       int n_msgs = parse_buffer(replybuffer, bytesRead, msgs);
+      
+      Serial.println(F(""));
+
       print_messages(msgs, n_msgs);
+
+      Serial.println(F(""));
 
       // TODO: Implement protocol parser
       // Protocol is -> '||HEAD|CONTENT||'
@@ -827,7 +832,7 @@ void loop() {
       // DONE: Created testing script
 
       for (int i=0; i<n_msgs; i++){
-        if msgs[i].payload == "HELLO"{
+        if (msgs[i].message == "HELLO"){
           char res[] = "WORLD";
           if (! fona.UDPsend(res, sizeof(res))) Serial.println(F("Failed to send!"));
           Serial.print("Sent response");
