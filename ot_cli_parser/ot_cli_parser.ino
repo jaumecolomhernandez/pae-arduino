@@ -7,12 +7,12 @@
 
 
 void setup() {
-  //String answer[50];
+  String answer[MAX_LENGTH_ANSWER];
   Serial.begin(115200); // Serial setup
   Serial2.begin(115200); // Software serial
   Serial2.setRxBufferSize(2048);
   Serial2.println(".");  // This is needed to clean weird input symbols
-  //read_ans(answer);
+  read_ans(answer);
 }
 
 void loop() {
@@ -26,7 +26,7 @@ void loop() {
 
   // **************[REPL] READ - EVAL - PRINT - LOOP**************
   String userCommand = "";
-  String answer[50];
+  String answer[MAX_LENGTH_ANSWER]={};
   if (Serial.available()) {
     userCommand = Serial.readStringUntil('\n');
     Serial.println(userCommand);

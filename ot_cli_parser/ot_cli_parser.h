@@ -45,10 +45,10 @@ typedef struct{
 
 /**************FUNCTIONS DECLARATION***************/
 boolean isEnding(String string);
-int read_ans(String command, String answer[] = {});
+int read_ans(String answer[]);
 String read_line();
 void print_hex(String string);
-int send_command(String command, String answer[] = {});
+int send_command(String command, String answer[]);
 void start_commissioner();
 void start_joiner();
 void open_udp_communication();

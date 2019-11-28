@@ -119,8 +119,9 @@ int send_command(String command, String answer[]) {
 
 
 void start_commissioner() {
+  String answer[MAX_LENGTH_ANSWER];
   for(int i = 0; i < length_init_commissioner_commands; i++){
-  	send_command(init_commissioner_commands[i]);
+  	send_command(init_commissioner_commands[i], answer);
   	delay(10000);
   }
   commissioner = true;
@@ -128,12 +129,12 @@ void start_commissioner() {
 
 
 void start_joiner() {
+  String answer[MAX_LENGTH_ANSWER];
   for(int i = 0; i < length_init_joiner_commands; i++){
-  	send_command(init_joiner_commands[i]);
+  	send_command(init_joiner_commands[i], answer);
   }
   bool join_answer = false;
   int length_answer = 0;
-  String answer[] = {};
   //Wait for an answer
     //Check if is a Join success answer
     length_answer = read_ans(answer);
@@ -142,7 +143,7 @@ void start_joiner() {
       Serial.println(answer[i]);
       if(answer[i].equals("Join success")){
         join_answer=true;
-        send_command("thread start");
+        send_command("thread start", answer);
         delay(5000);
       }
     }
@@ -154,18 +155,21 @@ void start_joiner() {
 
 
 void open_udp_communication(){
-	send_command("udp open");
-	send_command("udp bind :: 1212");
+  String answer[MAX_LENGTH_ANSWER]={};
+	send_command("udp open", answer);
+	send_command("udp bind :: 1212", answer);
 }
 
 void udp_connect(String ip){
-	send_command("udp open");
-	send_command("udp connect" + ip + "1212");
+  String answer[MAX_LENGTH_ANSWER];
+	send_command("udp open", answer);
+	send_command("udp connect" + ip + "1212", answer);
 }
 
 
 void def_static_ip(int dev_id){
-	send_command("ipaddr add dead:dead:cafe:cafe:dead:dead:cafe:000"+dev_id);
+  String answer[MAX_LENGTH_ANSWER]={};
+	send_command("ipaddr add dead:dead:cafe:cafe:dead:dead:cafe:000"+dev_id, answer);
 }
 
 
