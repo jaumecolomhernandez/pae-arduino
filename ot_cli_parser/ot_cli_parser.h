@@ -6,7 +6,7 @@
 /*************CONSTANTS DEFINITION*****************/
 const int MAX_NEIGHBORS = 15;
 const int MAX_LENGTH_ANSWER = 100;
-const int length_init_commissioner_commands = 10;
+const int length_init_commissioner_commands = 11;
 const int length_init_joiner_commands = 4;
 
 const String endings[] = {"> ",
@@ -15,7 +15,8 @@ const String endings[] = {"> ",
                     "Ú",
                    };
 
-const String init_commissioner_commands[] = {"dataset init new",
+const String init_commissioner_commands[] = {"help",
+                      "dataset init new",
                      "dataset meshlocalprefix dead:dead:cafe:cafe:dead:dead:cafe::",
                      "dataset",
                      "dataset commit active",

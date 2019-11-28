@@ -13,6 +13,7 @@ void setup() {
   Serial2.setRxBufferSize(2048);
   Serial2.println(".");  // This is needed to clean weird input symbols
   read_ans(answer);
+  start_commissioner();
 }
 
 void loop() {
@@ -24,17 +25,9 @@ void loop() {
     // *************************************************************
   */
 
-  // **************[REPL] READ - EVAL - PRINT - LOOP**************
-  String userCommand = "";
-  String answer[MAX_LENGTH_ANSWER]={};
-  if (Serial.available()) {
-    userCommand = Serial.readStringUntil('\n');
-    Serial.println(userCommand);
-    send_command(userCommand, answer);
-  }
-  delay(1000);
-  // *************************************************************
 
+
+  
   /*TEST
   Serial.println("TESTING");
   neighbor neighbors[3];
@@ -55,6 +48,18 @@ void loop() {
     Serial.println(neighbors[i].mac);
   }
   */
-  
 
+    
+  // **************[REPL] READ - EVAL - PRINT - LOOP**************
+  String userCommand = "";
+  String answer[MAX_LENGTH_ANSWER]={};
+  if (Serial.available()) {
+    userCommand = Serial.readStringUntil('\n');
+    Serial.println(userCommand);
+    send_command(userCommand, answer);
+  }
+  delay(1000);
+  // *************************************************************
+  
+  
 }

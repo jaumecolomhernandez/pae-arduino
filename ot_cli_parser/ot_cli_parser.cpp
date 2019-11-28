@@ -70,7 +70,6 @@ int read_ans(String answer[]) {
 
     if (recv_line.length() != 0) {
       answer[lines] = recv_line;
-      
       // *******************[DISTINGUISH STRING TYPES]**********************
       if (recv_line.endsWith("\n") && recv_line.length() == 2) {
         //string1 = recv_line
@@ -122,9 +121,14 @@ void start_commissioner() {
   String answer[MAX_LENGTH_ANSWER];
   for(int i = 0; i < length_init_commissioner_commands; i++){
   	send_command(init_commissioner_commands[i], answer);
-  	delay(10000);
+    Serial.println(answer[2]);
+      if(answer[2].indexOf("Invalid")>0){ //If the third line of the response has an error, restart configuration
+        i=-1;
+      }
+      delay(5000);
   }
   commissioner = true;
+
 }
 
 
