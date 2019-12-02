@@ -151,46 +151,15 @@ void start_commissioner() {
 
 
 void start_joiner() {
+  int joinable = 0;
+  while(joinable == 0){
+    joinable = scan();
+  }
   String answer[MAX_LENGTH_ANSWER];
   for(int i = 0; i < length_init_joiner_commands; i++){
   	send_command(init_joiner_commands[i], answer);
-    delay(7000);
-    if( i == 0){ //TO DO: SCAN UNTIL NETWORK IS JOINABLE
-      int length_answer;
-      bool done = false;
-      while(!done){
-        Serial.println("Entering scanning"); 
-        length_answer = read_ans(answer);
-        Serial.println(length_answer);
-        for(int j = 0; j < length_answer; j++){  
-          if(answer[j].indexOf("Done")>-1){
-            done = true;
-            Serial.println("Finished scanning");
-          }
-        } 
-      } 
-    }
-    
+    delay(7000);  
   }
-  /*
-  bool join_answer = false;
-  //Wait for an answer
-    //Check if is a Join success answer
-    length_answer = read_ans(answer);
-    Serial.print("Answer to the joining: ");
-    for(int i = 0; i<length_answer; i++){
-      Serial.println(answer[i]);
-      if(answer[i].equals("Join success")){
-        join_answer=true;
-        send_command("thread start", answer);
-        delay(5000);
-      }
-    }
-    if(!join_answer){
-       Serial.println("Join failure");   
-    }
-    commissioner = false;
-    */
    bool joined = false;
    bool failed = false;
    int length_answer = 0;
@@ -199,9 +168,9 @@ void start_joiner() {
       length_answer = read_ans(answer);
       if(length_answer != 0){
         for(int i = 0; i < length_answer; i++){
-          if(answer[i].indexOf("Join success")>0){
+          if(answer[i].indexOf("Join success")>-1){
             joined = true;
-          }else if(answer[i].indexOf("Join failed")>0){
+          }else if(answer[i].indexOf("Join failed")>-1){
             failed = true;
             break;
           }
@@ -211,8 +180,9 @@ void start_joiner() {
       timeout++;
    }
    if(failed){
-    send_command("joiner start AAAA", answer);
-    delay(60000);
+    Serial.print("Join failed");
+   }else{
+    send_command("thread start", answer);
    }
 }
 
@@ -248,4 +218,25 @@ void parse_neighbor_table(String answer[], int size, neighbor neighbors[]){
     count++;
   }
    
+}
+
+int scan(){
+  String answer[MAX_LENGTH_ANSWER];
+  send_command("scan", answer);
+  int length_answer;
+  bool done = false;
+  int joinable;
+  while(!done){
+    length_answer = read_ans(answer);
+    for(int j = 0; j < length_answer; j++){  
+      if(answer[j].indexOf("OpenThread")>-1){
+        joinable = answer[j].charAt(2);
+      }
+      if(answer[j].indexOf("Done")>-1){
+        done = true;
+      }
+    } 
+  }
+  return joinable; 
+    
 }

@@ -7,7 +7,7 @@
 const int MAX_NEIGHBORS = 15;
 const int MAX_LENGTH_ANSWER = 100;
 const int length_init_commissioner_commands = 10;
-const int length_init_joiner_commands = 6;
+const int length_init_joiner_commands = 5;
 
 const String endings[] = {"> ",
                     "> \n",
@@ -29,7 +29,6 @@ const String init_commissioner_commands[] = {
                     };
 
 const String init_joiner_commands[] = {
-                 "scan",
                  "panid 0xdead",
                  "dataset meshlocalprefix dead:dead:cafe:cafe:dead:dead:cafe::",
                  "ifconfig up",
