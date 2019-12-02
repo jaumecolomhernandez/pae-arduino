@@ -155,7 +155,7 @@ void start_joiner() {
   for(int i = 0; i < length_init_joiner_commands; i++){
   	send_command(init_joiner_commands[i], answer);
     delay(7000);
-    if( i == 0){
+    if( i == 0){ //TO DO: SCAN UNTIL NETWORK IS JOINABLE
       int length_answer;
       bool done = false;
       while(!done){

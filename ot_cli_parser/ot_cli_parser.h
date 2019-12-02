@@ -30,9 +30,9 @@ const String init_commissioner_commands[] = {
 
 const String init_joiner_commands[] = {
                  "scan",
-                 "dataset panid 0xdead",
-                 "ifconfig up",
+                 "panid 0xdead",
                  "dataset meshlocalprefix dead:dead:cafe:cafe:dead:dead:cafe::",
+                 "ifconfig up",
                  "eui64",
                  "joiner start AAAA",        
                 };

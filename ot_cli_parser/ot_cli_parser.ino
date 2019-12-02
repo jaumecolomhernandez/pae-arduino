@@ -14,7 +14,7 @@ void setup() {
   Serial2.println(".");  // This is needed to clean weird input symbols
   read_ans(answer);
   delay(5000);
-  start_commissioner();
+  start_joiner();
 }
 
 void loop() {
