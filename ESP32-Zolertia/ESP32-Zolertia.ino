@@ -220,12 +220,12 @@ void setup() {
 
 
   // Set Up the ZOlertia node
-  String answer[MAX_LENGTH_ANSWER];
-  Serial1.begin(115200, SERIAL_8N1, 14, 12);
-  Serial1.setRxBufferSize(2048);
-  Serial1.println(".");  // This is needed to clean weird input symbols
-  read_ans(answer);
-
+/*  String answer[MAX_LENGTH_ANSWER];*/
+  /*Serial1.begin(115200, SERIAL_8N1, 14, 12);*/
+  /*Serial1.setRxBufferSize(2048);*/
+  /*Serial1.println(".");  // This is needed to clean weird input symbols*/
+  /*read_ans(answer);*/
+  /*Serial1.flush();*/
 
 }
 
