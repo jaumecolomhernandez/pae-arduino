@@ -13,6 +13,7 @@ void setup() {
   Serial2.setRxBufferSize(2048);
   Serial2.println(".");  // This is needed to clean weird input symbols
   read_ans(answer);
+  delay(5000);
   start_commissioner();
 }
 

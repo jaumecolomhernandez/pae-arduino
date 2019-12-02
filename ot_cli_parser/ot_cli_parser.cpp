@@ -12,17 +12,24 @@ boolean isEnding(String string) {
     return false;
   }
 }
-String read_line() {
+String read_line(int t) {
   /*
      Reads single line from Serial buffer
      Reads characters until \n and returns the string.
   */
   String data = "";
   int tries = 0;
-  while (Serial2.available() == 0) {
-    if (debug) Serial.println("[read_ans] The chosen UART Serial bus is not available"); // Not sure if needed
+  if(t > 0){
+    while (Serial2.available() == 0 && tries < t) {
+      tries ++;
+      if (debug) Serial.println("[read_ans] The chosen UART Serial bus is not available"); // Not sure if needed
+    }
+  }else{
+    while (Serial2.available() == 0) {
+      if (debug) Serial.println("[read_ans] The chosen UART Serial bus is not available"); // Not sure if needed
+    }
   }
-
+  
 
   while (Serial2.available() > 0) {
     char character = Serial2.read(); // Receive a single character from the software serial port
@@ -57,8 +64,9 @@ int read_ans(String answer[]) {
   int lines = 0;
   int timeout_millis = 1000;
   int current_time = millis();
-
+  bool done = false;
   bool wait = true;
+  int finished = 0;
 
   while (Serial2.available() == 0) {
     if (debug)
@@ -66,8 +74,16 @@ int read_ans(String answer[]) {
   }
   while (wait) {
     //we read each line received
-    String recv_line = read_line();
-
+    String recv_line;
+    if(done){
+      finished++;
+      recv_line = read_line(10);
+    }else{
+      recv_line = read_line();
+    }
+    if (recv_line.indexOf("Done") > -1){
+      done = true;
+    }
     if (recv_line.length() != 0) {
       answer[lines] = recv_line;
       // *******************[DISTINGUISH STRING TYPES]**********************
@@ -105,7 +121,9 @@ int read_ans(String answer[]) {
      
     }
     if (millis() > (current_time + timeout_millis)) wait = false;
+    if(finished > 15) wait = false;
   }
+  Serial.println("Finished reading");
   return lines;
 }
 
@@ -125,7 +143,7 @@ void start_commissioner() {
       if(answer[2].indexOf("Invalid")>0){ //If the third line of the response has an error, restart configuration
         i=-1;
       }
-      delay(5000);
+      delay(7000);
   }
   commissioner = true;
 
@@ -136,9 +154,26 @@ void start_joiner() {
   String answer[MAX_LENGTH_ANSWER];
   for(int i = 0; i < length_init_joiner_commands; i++){
   	send_command(init_joiner_commands[i], answer);
+    delay(7000);
+    if( i == 0){
+      int length_answer;
+      bool done = false;
+      while(!done){
+        Serial.println("Entering scanning"); 
+        length_answer = read_ans(answer);
+        Serial.println(length_answer);
+        for(int j = 0; j < length_answer; j++){  
+          if(answer[j].indexOf("Done")>-1){
+            done = true;
+            Serial.println("Finished scanning");
+          }
+        } 
+      } 
+    }
+    
   }
+  /*
   bool join_answer = false;
-  int length_answer = 0;
   //Wait for an answer
     //Check if is a Join success answer
     length_answer = read_ans(answer);
@@ -155,6 +190,30 @@ void start_joiner() {
        Serial.println("Join failure");   
     }
     commissioner = false;
+    */
+   bool joined = false;
+   bool failed = false;
+   int length_answer = 0;
+   int timeout = 0;
+   while(!joined && timeout < 10){
+      length_answer = read_ans(answer);
+      if(length_answer != 0){
+        for(int i = 0; i < length_answer; i++){
+          if(answer[i].indexOf("Join success")>0){
+            joined = true;
+          }else if(answer[i].indexOf("Join failed")>0){
+            failed = true;
+            break;
+          }
+        }
+      }
+      delay(10000);
+      timeout++;
+   }
+   if(failed){
+    send_command("joiner start AAAA", answer);
+    delay(60000);
+   }
 }
 
 

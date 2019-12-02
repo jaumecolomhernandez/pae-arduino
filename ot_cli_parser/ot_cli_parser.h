@@ -6,8 +6,8 @@
 /*************CONSTANTS DEFINITION*****************/
 const int MAX_NEIGHBORS = 15;
 const int MAX_LENGTH_ANSWER = 100;
-const int length_init_commissioner_commands = 11;
-const int length_init_joiner_commands = 4;
+const int length_init_commissioner_commands = 10;
+const int length_init_joiner_commands = 6;
 
 const String endings[] = {"> ",
                     "> \n",
@@ -15,8 +15,8 @@ const String endings[] = {"> ",
                     "Ú",
                    };
 
-const String init_commissioner_commands[] = {"help",
-                      "dataset init new",
+const String init_commissioner_commands[] = {
+                     "dataset init new",
                      "dataset meshlocalprefix dead:dead:cafe:cafe:dead:dead:cafe::",
                      "dataset",
                      "dataset commit active",
@@ -28,10 +28,13 @@ const String init_commissioner_commands[] = {"help",
                      "commissioner joiner add * AAAA",
                     };
 
-const String init_joiner_commands[] = {"ifconfig up",
-                 "panid 0xdead",
+const String init_joiner_commands[] = {
+                 "scan",
+                 "dataset panid 0xdead",
+                 "ifconfig up",
+                 "dataset meshlocalprefix dead:dead:cafe:cafe:dead:dead:cafe::",
                  "eui64",
-                 "joiner start AAAA",           
+                 "joiner start AAAA",        
                 };
 
 
@@ -47,7 +50,7 @@ typedef struct{
 /**************FUNCTIONS DECLARATION***************/
 boolean isEnding(String string);
 int read_ans(String answer[]);
-String read_line();
+String read_line(int t = 0);
 void print_hex(String string);
 int send_command(String command, String answer[]);
 void start_commissioner();
