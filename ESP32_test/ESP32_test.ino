@@ -1,7 +1,8 @@
 #include "Adafruit_FONA.h" // https://github.com/botletics/SIM7000-LTE-Shield/tree/master/Code
+#include "ot_cli_parser.h"
 
 // Define *one* of the following lines:
-#define SIMCOM_7000 // SIM7000A/C/E/G
+#define SIMCOM_7000E // SIM7000A/C/E/G
 
 // For SIM7000 shield with ESP32
 #define FONA_PWRKEY 18
@@ -18,6 +19,8 @@
 // For ESP32 hardware serial
 #include <HardwareSerial.h>
 HardwareSerial fonaSS(1);
+HardwareSerial zolertiaSS(2);
+
 
 Adafruit_FONA_LTE fona = Adafruit_FONA_LTE();
 
@@ -40,8 +43,6 @@ struct message
   char message[80];
 } new_msg = {{0}, {0}};
 
-enum State s = none;
-
 struct node{
 	char ipv6[45];
 	char MAC[17];
@@ -54,38 +55,39 @@ void addNode(int id, char ipv6[45], char MAC[17]){
 	memcpy(nodeList[id].MAC, MAC, 17);
 }
 
-void print_messages(struct message *msgs, int n_msgs)
-{
-  // Prints the messages array
-  for (int i = 0; i < n_msgs; i++)
-  {
-	printf("Message %i/%i - ", i, n_msgs);
-	print_message(msgs[i]);
+/*    
+*/
+void print_messages(struct message *msgs, int n_msgs){
+  for (int i = 0; i < n_msgs; i++){
+    printf("Message %i/%i - ", i, n_msgs);
+    print_message(msgs[i]);
   }
 }
 
+/*
+*/
 void print_message(struct message mesg){
 	printf("Header: %s - ", mesg.message);
 	printf("Payload: %s\n", mesg.header);
 }
 
+
+/* Parses the receiver buffer 
+    The protocol is the following |HEADER|PAYLOAD| the messages 
+    are separated using vertical bars (|)
+    Params:
+    - buffer: (*char) pointer to char array containing the received content
+    - nchars: (int) lenght of the buffer
+    - msgs: (struct *message) pointer to array of messages(struct)
+    Returns:
+    - n_msgs: (int) number of messages received
+*/
 uint8_t parse_buffer(char *buffer, int nchars, struct message *msgs)
 {
-  /* Parses the receiver buffer 
-      The protocol is the following |HEADER|PAYLOAD| the messages 
-      are separated using vertical bars (|)
-      Params:
-      - buffer: (*char) pointer to char array containing the received content
-      - nchars: (int) lenght of the buffer
-      - msgs: (struct *message) pointer to array of messages(struct)
-      Returns:
-      - n_msgs: (int) number of messages received
-  */
   uint8_t n_msgs = 0;
   int begin = 0;
   int end = 0;
-
-  s = none;
+  enum State s = none;
 
   for (int i = 0; i < nchars; i++)
   {
@@ -146,11 +148,6 @@ uint8_t read_messages(struct message *msgs){
 
   Serial.println(F(""));
 
-  // TODO: Implement protocol parser
-  // Protocol is -> '||HEAD|CONTENT||'
-  // TODO: Create functional script
-  // DONE: Created testing script
-
   return n_msgs;
 }
 
@@ -169,16 +166,11 @@ void setup() {
   Serial.begin(115200);
   Serial.println(F("ESP32 Basic Test"));
   Serial.println(F("Initializing....(May take several seconds)"));
-
-  // Note: The SIM7000A baud rate seems to reset after being power cycled (SIMCom firmware thing)
-  // SIM7000 takes about 3s to turn on but SIM7500 takes about 15s
-  // Press reset button if the module is still turning on and the board doesn't find it.
-  // When the module is on it should communicate right after pressing reset
   
   // Start at default SIM7000 shield baud rate
   fonaSS.begin(115200, SERIAL_8N1, FONA_TX, FONA_RX); // baud rate, protocol, ESP32 RX pin, ESP32 TX pin
 
-  Serial.println(F("Configuring to 115200 baud"));
+  Serial.println(F("Configuring to 9600 baud"));
   fonaSS.println("AT+IPR=9600"); // Set baud rate
   delay(100); // Short pause to let the command run
   fonaSS.begin(9600, SERIAL_8N1, FONA_TX, FONA_RX); // Switch to 9600
@@ -189,19 +181,7 @@ void setup() {
 
   type = fona.type();
   Serial.println(F("FONA is OK"));
-  Serial.print(F("Found "));
-  switch (type) {
-    case SIM7000A:
-      Serial.println(F("SIM7000A (American)")); break;
-    case SIM7000C:
-      Serial.println(F("SIM7000C (Chinese)")); break;
-    case SIM7000E:
-      Serial.println(F("SIM7000E (European)")); break;
-    case SIM7000G:
-      Serial.println(F("SIM7000G (Global)")); break;
-    default:
-      Serial.println(F("???")); break;
-  }
+  Serial.println(F("SIM7000E (European)")); 
 
   // Print module IMEI number.
   uint8_t imeiLen = fona.getIMEI(imei);
@@ -217,17 +197,15 @@ void setup() {
 
   fona.setPreferredLTEMode(1); // Use LTE CAT-M only, not NB-IoT
 
-}
-
-
-
-void loop() {
   // Add all the nodes to the list
   addNode(1, "123123123", "213213123");
 
   Serial.println(nodeList[1].MAC);
+
   Serial.print(F("FONA> "));
-  while (! Serial.available() ) {
+
+  // NECESSARI AQUEST PARRAF?
+  while (! Serial.available() ) { //Això fa que s'hagi de fer enter abans
     if (fona.available()) {
       Serial.write(fona.read());
     }
@@ -253,17 +231,28 @@ void loop() {
   // Connect to PAESERVER
   if (! fona.UDPconnect("147.83.39.50", 12342)) Serial.println(F("Failed to connect!")); 
   
-  delay(200);
+  delay(200); // Needed delay
 
   char auth[7] = "AUTH  ";
   auth[5] = ID_STR;
   if(! fona.UDPsend(auth, sizeof(auth)-1)) Serial.println(F("Failed to connect!"));
 
+  // Set Up the ZOlertia node
+  String answer[MAX_LENGTH_ANSWER];
+  zolertiaSS.begin(115200, SERIAL_8N1, 14, 12);
+  zolertiaSS.setRxBufferSize(2048);
+  zolertiaSS.println(".");  // This is needed to clean weird input symbols*/
+  read_ans(answer);
+  zolertiaSS.flush();
+}
+
+
+
+void loop() {
+  
+
   unsigned long time = millis();
   /*char hey[PAYLOAD_SIZE] = "HEY";*/
-
-  while(true){
-
     /*// Send message every 4 seconds*/
     /*if ((millis() - time) > 4000){*/
       /*time = millis();*/
@@ -274,26 +263,18 @@ void loop() {
     struct message msgs[10];
     // Read messages
     uint8_t n_msgs = read_messages(msgs); 
-	printf("I have %i unhandled messages", n_msgs);
-    // Resonse callbacks
-    /*for (int i=0; i<n_msgs; i++){*/
-      /*if (msgs[i].message == "HELLO"){*/
-        /*char res[] = "WORLD";*/
-        /*if (! fona.UDPsend(res, sizeof(res))) Serial.println(F("Failed to send!"));*/
-        /*Serial.println("Sent response");*/
-      /*} else {*/
-        /*Serial.println("Method not implemented");*/
-      /*}*/
-    /*}*/
-	for (int i = 0; i < n_msgs; i++){
-		if (msgs[i].header[1] == 'A'){
-			digestMessage(msgs[i]);
-		} else if ( msgs[i].header[6] == ID_STR ){
-			digestACK(msgs[i]);
-		} else {
-			fwdMessage(msgs[i]);
-		}
-	}
+	  printf("I have %i unhandled messages", n_msgs);
+   
+    for (int i = 0; i < n_msgs; i++){
+      if (msgs[i].header[1] == 'A'){
+        digestMessage(msgs[i]);
+      } else if ( msgs[i].header[6] == ID_STR ){
+        digestACK(msgs[i]);
+      } else {
+        fwdMessage(msgs[i]);
+      }
+    }
+
     delay(1000);
 
     // flush input
@@ -301,87 +282,20 @@ void loop() {
     while (fona.available()) {
       Serial.write(fona.read());
     }
-  }
+  
 }
 
 
 void flushSerial() {
-  while (Serial.available())
-    Serial.read();
-}
-
-char readBlocking() {
-  while (!Serial.available());
-  return Serial.read();
-}
-uint16_t readnumber() {
-  uint16_t x = 0;
-  char c;
-  while (! isdigit(c = readBlocking())) {
-    //Serial.print(c);
-  }sizeof
-  Serial.print(c);
-  x = c - '0';
-  while (isdigit(c = readBlocking())) {
-    Serial.print(c);
-    x *= 10;
-    x += c - '0';
-  }
-  return x;
-}
-
-uint8_t readline(char *buff, uint8_t maxbuff, uint16_t timeout) {
-  uint16_t buffidx = 0;
-  boolean timeoutvalid = true;
-  if (timeout == 0) timeoutvalid = false;
-
-  while (true) {
-    if (buffidx > maxbuff) {
-      //Serial.println(F("SPACE"));
-      break;
-    }
-
-    while (Serial.available()) {
-      char c =  Serial.read();
-
-      //Serial.print(c, HEX); Serial.print("#"); Serial.println(c);
-
-      if (c == '\r') continue;
-      if (c == 0xA) {
-        if (buffidx == 0)   // the first 0x0A is ignored
-          continue;
-
-        timeout = 0;         // the second 0x0A is the end of the line
-        timeoutvalid = true;
-        break;
-      }
-      buff[buffidx] = c;
-      buffidx++;
-    }
-
-    if (timeoutvalid && timeout == 0) {
-      //Serial.println(F("TIMEOUT"));
-      break;
-    }
-    delay(1);
-  }
-  buff[buffidx] = 0;  // null term
-  return buffidx;
+  while (Serial.available()){} 
+    //Serial.read();
 }
 
 // Power on the module
 void powerOn() {
   digitalWrite(FONA_PWRKEY, LOW);
   // See spec sheets for your particular module
-#if defined(SIMCOM_2G)
-  delay(1050);
-#elif defined(SIMCOM_3G)
-  delay(180); // For SIM5320
-#elif defined(SIMCOM_7000)
   delay(100); // For SIM7000
-#elif defined(SIMCOM_7500)
-  delay(500); // For SIM7500
-#endif
 
   digitalWrite(FONA_PWRKEY, HIGH);
 }
