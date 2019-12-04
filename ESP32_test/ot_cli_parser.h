@@ -49,6 +49,7 @@ typedef struct{
 
 
 /**************FUNCTIONS DECLARATION***************/
+void setSerial(Stream &serial);
 boolean isEnding(String string);
 int read_ans(String answer[]);
 String read_line(int t = 0);
