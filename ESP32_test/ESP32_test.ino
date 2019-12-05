@@ -167,49 +167,51 @@ void setup() {
   setSerial(zolertiaSS);
 }
 
+long unsigned int time_ms = millis();
+struct message msgs[10];
 
+/*
+*/
+void send_t_time(int interval_ms){
+  if ((millis() - time_ms) > interval_ms){
+    time_ms = millis();
+    if (! fona.UDPsend("HEY", sizeof("HEY")-1)) Serial.println(F("Failed to send!"));
+    Serial.println(F("Sent message 'HEY' "));
+  }
+}
 
 void loop() {
+  // Send every n seconds
+  send_t_time(4000);
   
-
-  unsigned long time = millis();
-  /*char hey[PAYLOAD_SIZE] = "HEY";*/
-    /*// Send message every 4 seconds*/
-    /*if ((millis() - time) > 4000){*/
-      /*time = millis();*/
-      /*if (! fona.UDPsend(hey, sizeof(hey)-1)) Serial.println(F("Failed to send!"));*/
-      /*Serial.println(F("Sent message 'HEY' "));*/
-    /*}*/
-
-    struct message msgs[10];
-    // Read messages
-    uint8_t n_msgs = read_messages(msgs); 
-	  printf("I have %i unhandled messages", n_msgs);
-   
-    for (int i = 0; i < n_msgs; i++){
-      if (msgs[i].header[1] == 'A'){
-        digestMessage(msgs[i]);
-      } else if ( msgs[i].header[6] == ID_STR ){
-        digestACK(msgs[i]);
-      } else {
-        fwdMessage(msgs[i]);
-      }
-    }
-
-    delay(1000);
-
-    // flush input
-    flushSerial();
-    while (fona.available()) {
-      Serial.write(fona.read());
-    }
+  // Read messages
+  uint8_t n_msgs = read_messages(msgs); 
+  printf("I have %i unhandled messages", n_msgs);
   
+  // Take action
+  for (int i = 0; i < n_msgs; i++){
+    if (msgs[i].header[1] == 'A'){
+      digestMessage(msgs[i]);
+    } else if ( msgs[i].header[6] == ID_STR ){
+      digestACK(msgs[i]);
+    } else {
+      fwdMessage(msgs[i]);
+    }
+  }
+
+  delay(100);
+
+  // flush input
+  flushSerial();
+  while (fona.available()) {
+    Serial.write(fona.read());
+  }
 }
 
 
 void flushSerial() {
-  while (Serial.available()){} 
-    //Serial.read();
+  while (Serial.available()) 
+    Serial.read();
 }
 
 // Power on the module
@@ -220,18 +222,6 @@ void powerOn() {
 
   digitalWrite(FONA_PWRKEY, HIGH);
 }
-
-void buildMessage( char *buff, char message[], int mesg_len, char origin, char dest ){
-// USAR SPRINTF
-    char header[] = "|O :D: |";
-    header[2] = origin;
-    header[6] = dest;
-
-    memcpy(buff, header, sizeof(header));
-    strcat(buff, message);
-    strcat(buff, "|");
-}
-
 
 void digestMessage(struct message mesg){
 	print_message(mesg);
