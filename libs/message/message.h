@@ -20,5 +20,6 @@ enum State
 void print_messages(struct message *msgs, int n_msgs);
 void print_message(struct message mesg);
 uint8_t parse_buffer(char *buffer, int nchars, struct message *msgs);
+void buildMessage( char *buff, char message[], int mesg_len, char origin, char dest);
 
 #endif 

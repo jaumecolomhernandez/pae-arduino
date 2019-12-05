@@ -70,3 +70,14 @@ uint8_t parse_buffer(char *buffer, int nchars, struct message *msgs)
   }
   return n_msgs;
 }
+
+void buildMessage( char *buff, char message[], int mesg_len, char origin, char dest ){
+// USAR SPRINTF
+  char header[] = "|O :D: |";
+  header[2] = origin;
+  header[6] = dest;
+
+  memcpy(buff, header, sizeof(header));
+  strcat(buff, message);
+  strcat(buff, "|");
+}
