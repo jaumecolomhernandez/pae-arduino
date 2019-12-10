@@ -49,14 +49,17 @@ typedef struct{
 
 /**************FUNCTIONS DECLARATION***************/
 boolean isEnding(String string);
-int read_ans(String answer[]);
+int read_ans();
 String read_line(int t = 0);
 void print_hex(String string);
-int send_command(String command, String answer[]);
+int send_command(String command);
 void start_commissioner();
 void start_joiner();
 void open_udp_communication();
 void udp_connect(String ip);
 void def_static_ip(int dev_id);
 void parse_neighbor_table(String answer[], int size, neighbor neighbors[]);
+void read_neighbor_table();
+void fake_answer();
+int read_channel_rssi();
 #endif 

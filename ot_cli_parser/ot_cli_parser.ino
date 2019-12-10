@@ -5,16 +5,16 @@
 
 #include "ot_cli_parser.h"
 
+bool hasCommissioned = false;
 
 void setup() {
-  String answer[MAX_LENGTH_ANSWER];
   Serial.begin(115200); // Serial setup
   Serial2.begin(115200); // Software serial
   Serial2.setRxBufferSize(2048);
   Serial2.println(".");  // This is needed to clean weird input symbols
-  read_ans(answer);
   delay(5000);
-  start_joiner();
+  while(Serial2.available()) {Serial2.read();}
+  Serial.println("Set up finished");
 }
 
 void loop() {
@@ -49,18 +49,25 @@ void loop() {
     Serial.println(neighbors[i].mac);
   }
   */
-
-    
+  
   // **************[REPL] READ - EVAL - PRINT - LOOP**************
   String userCommand = "";
   String answer[MAX_LENGTH_ANSWER]={};
-  if (Serial.available()) {
+  while(Serial.available() == 0){}
+  
+  if (Serial.available() > 0) {
     userCommand = Serial.readStringUntil('\n');
-    Serial.println(userCommand);
-    send_command(userCommand, answer);
+    send_command(userCommand);
   }
   delay(1000);
-  // *************************************************************
+
+  /*while(!Serial.available()){}
   
+  if(!hasCommissioned){
+    read_neighbor_table();
+    hasCommissioned = true;
+  }*/
+  // ************************************************************* 
+
   
 }
