@@ -156,19 +156,20 @@ void setup() {
   
   delay(200); // Needed delay
 
-  char auth[7] = "AUTH  ";
-  auth[5] = ID_STR;
+  char auth[] = "||AUTH 4|";
   if(! fona.UDPsend(auth, sizeof(auth)-1)) Serial.println(F("Failed to connect!"));
-
+  /*char buffer[100];*/
+  /*buildMessage(buffer, auth, sizeof(auth), '1', 'S');*/
+  /*if(! fona.UDPsend(buffer, sizeof(buffer)-1)) Serial.println(F("Failed to connect!"));*/
   // Set Up the ZOlertia node
   String answer[MAX_LENGTH_ANSWER];
-  zolertiaSS.begin(115200, SERIAL_8N1, 14, 12);
+  zolertiaSS.begin(115200, SERIAL_8N1, 14, 27);
   zolertiaSS.setRxBufferSize(2048);
-  zolertiaSS.println(".");  // This is needed to clean weird input symbols*/
-  read_ans(answer);
+  setSerial(zolertiaSS);
+
+  send_command(".", answer);  // This is needed to clean weird input symbols
   zolertiaSS.flush();
 
-  setSerial(zolertiaSS);
 }
 
 long unsigned int time_ms = millis();
@@ -185,9 +186,14 @@ void send_t_time(int interval_ms){
 }
 
 void loop() {
-  // Send every n seconds
-  send_t_time(4000);
+  String answer[MAX_LENGTH_ANSWER];
+  /*send_command("help", answer);  // This is needed to clean weird input symbols*/
+  /*zolertiaSS.flush();*/
+
+
+  /*send_t_time(4000);*/
   
+   
   // Read messages
   uint8_t n_msgs = read_messages(msgs); 
   printf("I have %i unhandled messages", n_msgs);
@@ -195,9 +201,9 @@ void loop() {
   // Take action
   for (int i = 0; i < n_msgs; i++){
     if (msgs[i].header[1] == 'A'){
-      digestMessage(msgs[i]);
-    } else if ( msgs[i].header[6] == ID_STR ){
       digestACK(msgs[i]);
+    } else if ( msgs[i].header[6] == '4' ){
+      digestMessage(msgs[i]);
     } else {
       fwdMessage(msgs[i]);
     }
@@ -228,7 +234,11 @@ void powerOn() {
 }
 
 void digestMessage(struct message mesg){
-	print_message(mesg);
+	printf("***** DIGESTING MESSAGE YUMMY!! *****");
+    String answer[MAX_LENGTH_ANSWER];
+	printf(mesg.message);
+  	send_command(mesg.message, answer);  // This is needed to clean weird input symbols 
+	zolertiaSS.flush();
 }
 
 void digestACK(struct message mesg){
