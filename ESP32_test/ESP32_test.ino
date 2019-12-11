@@ -10,6 +10,10 @@
 #define FONA_TX 16 // ESP32 hardware serial RX2 (GPIO16)
 #define FONA_RX 17 // ESP32 hardware serial TX2 (GPIO17)
 
+// Defines for zolertia
+//#define ZOL_TX 14 
+//#define ZOL_RX 12
+
 // For the mesh network
 #define MAX_NUM_NODES 10
 #define ID	1
