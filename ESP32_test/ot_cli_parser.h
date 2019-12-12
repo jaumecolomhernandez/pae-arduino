@@ -60,5 +60,5 @@ void start_joiner();
 void open_udp_communication();
 void udp_connect(String ip);
 void def_static_ip(int dev_id);
-void parse_neighbor_table(String answer[], int size, neighbor neighbors[]);
+void parse_neighbor_table(neighbor neighbors[]);
 #endif 

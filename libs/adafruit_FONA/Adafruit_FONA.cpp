@@ -2583,7 +2583,7 @@ uint16_t Adafruit_FONA::UDPavailable(void) {
   if (! sendParseReply(F("AT+CIPRXGET=4"), F("+CIPRXGET: 4,"), &avail, ',', 0) ) return false;
 
 
-  DEBUG_PRINT (avail); DEBUG_PRINTLN(F(" bytes available"));
+  // DEBUG_PRINT (avail); DEBUG_PRINTLN(F(" bytes available"));
 
 
   return avail;

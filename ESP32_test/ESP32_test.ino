@@ -11,8 +11,8 @@
 #define FONA_RX 17 // ESP32 hardware serial TX2 (GPIO17)
 
 // Defines for zolertia
-//#define ZOL_TX 14 
-//#define ZOL_RX 12
+#define ZOL_TX 14 
+#define ZOL_RX 27
 
 // For the mesh network
 #define MAX_NUM_NODES 10
@@ -51,7 +51,15 @@ void addNode(int id, char ipv6[45], char MAC[17]){
 uint8_t read_messages(struct message *msgs){
   /* Reads from receive buffer NON-BLOCKING */
   char replybuffer[255];
-  uint16_t bytesRead = fona.UDPread(replybuffer, 250);
+  uint16_t bytesRead = 0;
+  uint16_t available = fona.UDPavailable();
+  if (available > 0){
+    printf("%d", available);
+    bytesRead = fona.UDPread(replybuffer, 250);
+  } else {
+    return 0;
+  }
+  
 
   if (bytesRead == 0) {
     //Serial.println(F("Failed to read / nothing available!"));
@@ -65,10 +73,6 @@ uint8_t read_messages(struct message *msgs){
 
   uint8_t n_msgs = parse_buffer(replybuffer, bytesRead, msgs);
   
-  Serial.println(F(""));
-
-  print_messages(msgs, n_msgs);
-
   Serial.println(F(""));
 
   return n_msgs;
@@ -163,7 +167,7 @@ void setup() {
   /*if(! fona.UDPsend(buffer, sizeof(buffer)-1)) Serial.println(F("Failed to connect!"));*/
   // Set Up the ZOlertia node
   String answer[MAX_LENGTH_ANSWER];
-  zolertiaSS.begin(115200, SERIAL_8N1, 14, 27);
+  zolertiaSS.begin(115200, SERIAL_8N1, ZOL_TX, ZOL_RX);
   zolertiaSS.setRxBufferSize(2048);
   setSerial(zolertiaSS);
 
@@ -180,33 +184,112 @@ struct message msgs[10];
 void send_t_time(int interval_ms){
   if ((millis() - time_ms) > interval_ms){
     time_ms = millis();
-    if (! fona.UDPsend("HEY", sizeof("HEY")-1)) Serial.println(F("Failed to send!"));
-    Serial.println(F("Sent message 'HEY' "));
+    if (! fona.UDPsend("ALIVE", sizeof("ALIVE")-1)) Serial.println(F("Failed to send!"));
+    Serial.println(F("Sent 'ALIVE' "));
+  }
+}
+
+
+int indexOf(char source[], char sub[], int len){
+    int indexSub = 0;
+    // printf("%d", len);
+    
+    // printf("%s\n",source);
+    // printf("%s\n",sub);
+    
+    //printf("%d, %d\n", sizeof(sub),sizeof(source));
+    
+    for (int i=0; i<80; i++){
+        if (source[i] == sub[indexSub]) {
+            
+            //printf("%d-%c\n",i, source[i]);
+            indexSub = indexSub + 1;
+            
+            if (indexSub == (len-1)){
+                return i-indexSub+1;    
+            }
+        } else {
+            indexSub = 0;
+        }
+    }
+    return -1;
+}
+
+void process_standard_message(char order[]){
+  if (indexOf(order, "start_commissioner", sizeof("start_commissioner")) > -1){
+    start_commissioner();
+  } else if (indexOf(order,"start_joiner", sizeof("start_joiner")) > -1){
+    start_joiner();
+  } else if (indexOf(order,"open_udp_communication", sizeof("open_udp_communication")) > -1){
+    open_udp_communication();
+  } else if (indexOf(order,"udp_connect", sizeof("udp_connect")) > -1){
+    char ip[39]; 
+    memcpy(ip, order+11+1, 39); //to get IP
+    udp_connect(ip);
+  } else if (indexOf(order,"def_static_ip", sizeof("def_static_ip")) > -1){
+    def_static_ip(int(order[14]));
+  } else if (indexOf(order,"parse_neightbor_table", sizeof("parse_neightbor_table")) > -1){
+    neighbor neighbors[10]; 
+    parse_neighbor_table(neighbors);
+  } else {
+    printf("Order not implemented");
   }
 }
 
 void loop() {
   String answer[MAX_LENGTH_ANSWER];
-  /*send_command("help", answer);  // This is needed to clean weird input symbols*/
+  //send_command("help", answer);  // This is needed to clean weird input symbols*/
   /*zolertiaSS.flush();*/
 
+  delay(1000);
 
-  /*send_t_time(4000);*/
+  send_t_time(10000);
   
    
   // Read messages
   uint8_t n_msgs = read_messages(msgs); 
-  printf("I have %i unhandled messages", n_msgs);
+  printf("I have %i unhandled messages\n", n_msgs);
   
+  //print_messages(msgs, n_msgs);
+
+  //Serial.println(F(""));
+
   // Take action
   for (int i = 0; i < n_msgs; i++){
-    if (msgs[i].header[1] == 'A'){
-      digestACK(msgs[i]);
-    } else if ( msgs[i].header[6] == '4' ){
-      digestMessage(msgs[i]);
+    // Assumim que header sempre te llargada 0 o 1
+    // if header len 0 is standard
+    // if header Z is send to zolertia
+    // if header A is ack 
+    // if header S is standard
+    // if (sizeof(msgs[i].header) > 1){
+    //   printf("INVALID HEADER RECEIVED\n");
+    //   printf("%d\n", sizeof(msgs[i].header));
+    //   printf("%s\n", msgs[i].header);
+    //   break;
+    // }
+    if (sizeof(msgs[i].header) == 0){
+      printf("NO HEADER RECEIVED\n");
+      process_standard_message(msgs[i].message);
+    } else if (msgs[i].header[0] == 'Z'){
+      printf("ZOLERTIA HEADER RECEIVED\n");
+      send_command(msgs[i].message, answer);
+    } else if (msgs[i].header[0] == 'C'){
+      printf("ACK HEADER RECEIVED\n");
+      fona.UDPsend("ACK", sizeof("ACK")-1); 
+    } else if (msgs[i].header[0] == 'S'){
+      printf("STANDARD HEADER RECEIVED\n");
+      process_standard_message(msgs[i].message);
     } else {
-      fwdMessage(msgs[i]);
+      printf("NO KNOWN HEADER");
+      process_standard_message(msgs[i].message);
     }
+    // if (msgs[i].header[1] == 'A'){
+    //   digestACK(msgs[i]);
+    // } else if ( msgs[i].header[6] == '4' ){
+    //   digestMessage(msgs[i]);
+    // } else {
+    //   fwdMessage(msgs[i]);
+    // }
   }
 
   delay(100);

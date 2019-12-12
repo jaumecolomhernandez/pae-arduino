@@ -13,8 +13,8 @@ void print_messages(struct message *msgs, int n_msgs){
 /*
 */
 void print_message(struct message mesg){
-	printf("Header: %s - ", mesg.message);
-	printf("Payload: %s\n", mesg.header);
+	printf("Header: %s - ", mesg.header);
+	printf("Payload: %s\n", mesg.message);
 }
 
 

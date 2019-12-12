@@ -243,7 +243,10 @@ void def_static_ip(int dev_id){
 }
 
 
-void parse_neighbor_table(String answer[], int size, neighbor neighbors[]){
+void parse_neighbor_table(neighbor neighbors[]){
+  String answer[MAX_LENGTH_ANSWER];
+  int size = send_command("neighbors", answer);
+
   int count = 0;
   for(int i = 3; i < size-2; i++){
     neighbor n;
