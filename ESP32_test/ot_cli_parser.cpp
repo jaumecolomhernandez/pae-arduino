@@ -217,9 +217,18 @@ void start_joiner() {
       delay(10000);
       timeout++;
    }
-   if(failed){
+   while(failed){
     send_command("joiner start AAAA", answer);
     delay(60000);
+	length_answer = read_ans(answer);
+	for(int i = 0; i < length_answer; i++){
+          if(answer[i].indexOf("Join success")>0){
+            failed = false;
+          }else if(answer[i].indexOf("Join failed")>0){
+            failed = true;
+            break;
+          }
+        }
    }
 }
 
@@ -239,7 +248,7 @@ void udp_connect(String ip){
 
 void def_static_ip(int dev_id){
   String answer[MAX_LENGTH_ANSWER]={};
-	send_command("ipaddr add dead:dead:cafe:cafe:dead:dead:cafe:000"+dev_id, answer);
+  send_command("ipaddr add dead:dead:cafe:cafe:dead:dead:cafe:000"+dev_id, answer);
 }
 
 

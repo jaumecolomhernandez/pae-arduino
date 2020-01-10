@@ -26,6 +26,9 @@ HardwareSerial fonaSS(1);
 HardwareSerial zolertiaSS(2);
 
 #include <message.h>
+#define JOINER 0
+#define COMMISSIONER 1
+#define ROLE 1
 
 
 Adafruit_FONA_LTE fona = Adafruit_FONA_LTE();
@@ -80,6 +83,8 @@ uint8_t read_messages(struct message *msgs){
 
 void setup() {
   //  while (!Serial);
+
+  int role = ROLE;
 
   pinMode(FONA_RST, OUTPUT);
   digitalWrite(FONA_RST, HIGH); // Default state
@@ -174,6 +179,11 @@ void setup() {
   send_command(".", answer);  // This is needed to clean weird input symbols
   zolertiaSS.flush();
 
+  if(role == COMMISSIONER){
+	start_commissioner();
+  }else if(role == JOINER){
+	start_joiner();
+  }
 }
 
 long unsigned int time_ms = millis();
@@ -237,10 +247,11 @@ void process_standard_message(char order[]){
 }
 
 void loop() {
+  int role = ROLE;
   String answer[MAX_LENGTH_ANSWER];
   //send_command("help", answer);  // This is needed to clean weird input symbols*/
   /*zolertiaSS.flush();*/
-
+  int lines;
   delay(1000);
 
   send_t_time(10000);
@@ -293,14 +304,25 @@ void loop() {
   }
 
   delay(100);
+  if(role == COMMISSIONER){
+	  // flush input
+	  flushSerial();
+	  while (fona.available()) {
+		Serial.write(fona.read());
+	  }
 
-  // flush input
-  flushSerial();
-  while (fona.available()) {
-    Serial.write(fona.read());
+	  Serial.println("** Zolertia **");
+	  lines = send_command(".", answer);
+	  for(int i = 0; i<lines; i++){
+		  Serial.println(answer[i]);
+		  if(answer[i].indexOf("Joiner remove") > -1){
+			  send_command("commissioner joiner add * AAAA", answer);
+			  break;
+		  }
+	  }
+	  
   }
 }
-
 
 void flushSerial() {
   while (Serial.available()) 
