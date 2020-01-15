@@ -12,12 +12,12 @@ void setSerial(Stream &serial){
 }
 
 boolean isEnding(String string) {
-  for (int i = 0; i < sizeof(endings); i++) {
-    if (string.equals(endings[i])) {
+  for (int i = 0; i < 5; i++) {
+    if (string.indexOf(endings[i]) > -1) {
       return true;
     }
-    return false;
   }
+    return false;
 }
 String read_line(int t) {
   /*
@@ -130,7 +130,7 @@ int read_ans(String answer[]) {
     if (millis() > (current_time + timeout_millis)) wait = false;
     if(finished > 15) wait = false;
   }
-  Serial.println("Finished reading");
+  Serial.println("Finished reading!");
   return lines;
 }
 
@@ -199,37 +199,64 @@ void start_joiner() {
     commissioner = false;
     */
    bool joined = false;
-   bool failed = false;
+   bool resp = false;
+   bool success = false;
    int length_answer = 0;
    int timeout = 0;
-   while(!joined && timeout < 10){
-      length_answer = read_ans(answer);
-      if(length_answer != 0){
-        for(int i = 0; i < length_answer; i++){
-          if(answer[i].indexOf("Join success")>0){
-            joined = true;
-          }else if(answer[i].indexOf("Join failed")>0){
-            failed = true;
-            break;
-          }
-        }
-      }
-      delay(10000);
-      timeout++;
-   }
-   while(failed){
-    send_command("joiner start AAAA", answer);
-    delay(60000);
-	length_answer = read_ans(answer);
-	for(int i = 0; i < length_answer; i++){
-          if(answer[i].indexOf("Join success")>0){
-            failed = false;
-          }else if(answer[i].indexOf("Join failed")>0){
-            failed = true;
-            break;
-          }
-        }
-   }
+   
+   while(!joined){
+	   Serial.println("Entering main loop");
+	   while(!resp && timeout < 10){
+
+	   	  Serial.println("In timeout loop");
+		  length_answer = read_ans(answer);
+		  Serial.println("received response");
+		  if(length_answer != 0){
+			for(int i = 0; i < length_answer; i++){
+			  Serial.println(answer[i]);
+			  if(answer[i].indexOf("Join success")>-1){
+				Serial.println("Scces");
+				resp = true;
+				joined = true;
+				break;
+			  }else if(answer[i].indexOf("Join failed")>-1){
+				Serial.println("Fail");
+				resp = true;
+				break;
+			  }
+			}
+		  }
+		  delay(10000);
+		  timeout++;
+	    }
+	   if(!joined){
+		   resp = false;
+		   timeout  = 0;
+		   Serial.println("RETRY");
+			send_command("joiner start AAAA", answer);
+		  }
+
+
+	   	}
+   /*while(failed){*/
+	   //if(failed){
+		   //Serial.println("I'm failed");
+	   //}
+    //send_command("joiner start AAAA", answer);
+    //delay(60000);
+	//length_answer = read_ans(answer);
+	//Serial.println("surt");
+	//for(int i = 0; i < length_answer; i++){
+          //if(answer[i].indexOf("Join success")>0){
+            //failed = false;
+			//Serial.println("Failed false");
+          //}else if(answer[i].indexOf("Join failed")>0){
+            //failed = true;
+			//Serial.println("Failed true");
+            //break;
+          //}
+        //}
+   /*}*/
 }
 
 
@@ -242,7 +269,7 @@ void open_udp_communication(){
 void udp_connect(String ip){
   String answer[MAX_LENGTH_ANSWER];
 	send_command("udp open", answer);
-	send_command("udp connect" + ip + "1212", answer);
+	send_command("udp connect " + ip + " 1212", answer);
 }
 
 

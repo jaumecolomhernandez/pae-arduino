@@ -16,8 +16,8 @@
 
 // For the mesh network
 #define MAX_NUM_NODES 10
-#define ID	1
-#define ID_STR '1'
+#define ID	2
+#define ID_STR '2'
 #define PAYLOAD_SIZE 1024
 
 // For ESP32 hardware serial
@@ -137,11 +137,11 @@ void setup() {
   Serial.print(F("FONA> "));
 
   // NECESSARI AQUEST PARRAF?
-  while (! Serial.available() ) { //Això fa que s'hagi de fer enter abans
+  /*while (! Serial.available() ) { //Això fa que s'hagi de fer enter abans
     if (fona.available()) {
       Serial.write(fona.read());
     }
-  }
+  }*/
 
     
   Serial.println("Starting autopilot!");
@@ -165,7 +165,7 @@ void setup() {
   
   delay(200); // Needed delay
 
-  char auth[] = "||AUTH 4|";
+  char auth[] = "||AUTH 2|";
   if(! fona.UDPsend(auth, sizeof(auth)-1)) Serial.println(F("Failed to connect!"));
   /*char buffer[100];*/
   /*buildMessage(buffer, auth, sizeof(auth), '1', 'S');*/
@@ -181,8 +181,13 @@ void setup() {
 
   if(role == COMMISSIONER){
 	start_commissioner();
+	//open_udp_communication();
   }else if(role == JOINER){
 	start_joiner();
+	send_command("ipaddr add dead:dead:cafe:cafe:dead:dead:cafe:0002", answer);
+    udp_connect("dead:dead:cafe:cafe:dead:dead:cafe:0001");
+	send_command("udp send dead:dead:cafe:cafe:dead:dead:cafe:0002", answer);
+	open_udp_communication();
   }
 }
 
@@ -259,7 +264,7 @@ void loop() {
    
   // Read messages
   uint8_t n_msgs = read_messages(msgs); 
-  printf("I have %i unhandled messages\n", n_msgs);
+  printf("I have %i unhandled messages from the server\n", n_msgs);
   
   //print_messages(msgs, n_msgs);
 

@@ -13,6 +13,7 @@ const String endings[] = {"> ",
                     "> \n",
                     ">",
                     "Ú",
+					"failed",
                    };
 
 const String init_commissioner_commands[] = {
@@ -26,6 +27,7 @@ const String init_commissioner_commands[] = {
                      "ipaddr",
                      "commissioner start",
                      "commissioner joiner add * AAAA",
+					 //"ipaddr add dead:dead:cafe:cafe:dead:dead:cafe:0001",
                     };
 
 const String init_joiner_commands[] = {
