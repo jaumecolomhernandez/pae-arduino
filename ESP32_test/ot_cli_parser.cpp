@@ -12,8 +12,11 @@ void setSerial(Stream &serial){
 }
 
 boolean isEnding(String string) {
-  for (int i = 0; i < 5; i++) {
-    if (string.indexOf(endings[i]) > -1) {
+	if(string.indexOf("failed") > -1){
+		return true;
+	}
+  for (int i = 0; i < 4; i++) {
+    if (string.equals(endings[i])) {
       return true;
     }
   }
@@ -153,7 +156,6 @@ void start_commissioner() {
       delay(7000);
   }
   commissioner = true;
-
 }
 
 
@@ -216,6 +218,7 @@ void start_joiner() {
 			  Serial.println(answer[i]);
 			  if(answer[i].indexOf("Join success")>-1){
 				Serial.println("Scces");
+				send_command("thread start", answer);
 				resp = true;
 				joined = true;
 				break;
@@ -294,4 +297,12 @@ void parse_neighbor_table(neighbor neighbors[]){
     count++;
   }
    
+}
+
+void send_udp(String ID, String message, String answer[]){
+    udp_connect("dead:dead:cafe:cafe:dead:dead:cafe:000" + ID);
+	delay(5000);
+	send_command("udp send " + message, answer);
+	delay(5000);
+	open_udp_communication();
 }

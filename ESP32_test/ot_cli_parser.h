@@ -13,7 +13,6 @@ const String endings[] = {"> ",
                     "> \n",
                     ">",
                     "Ú",
-					"failed",
                    };
 
 const String init_commissioner_commands[] = {
@@ -27,7 +26,6 @@ const String init_commissioner_commands[] = {
                      "ipaddr",
                      "commissioner start",
                      "commissioner joiner add * AAAA",
-					 //"ipaddr add dead:dead:cafe:cafe:dead:dead:cafe:0001",
                     };
 
 const String init_joiner_commands[] = {
@@ -63,4 +61,5 @@ void open_udp_communication();
 void udp_connect(String ip);
 void def_static_ip(int dev_id);
 void parse_neighbor_table(neighbor neighbors[]);
+void send_udp(String ID, String message, String answer[]);
 #endif 
